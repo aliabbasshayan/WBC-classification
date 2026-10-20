@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Conda / Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+wbc-ai/
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Scratch scripts
+scratch/
+
+# Test and runtime caches
+.pytest_cache/
+*.pyc

@@ -1,0 +1,65 @@
+{
+  "dataset_name": "Raabin-WBC (Double-Labeled Cropped WBC Images)",
+  "official_splits": {
+    "Train": {
+      "total": 10175,
+      "class_counts": {
+        "Basophil": 212,
+        "Eosinophil": 744,
+        "Lymphocyte": 2427,
+        "Monocyte": 561,
+        "Neutrophil": 6231
+      },
+      "class_percentages": {
+        "Basophil": 2.08,
+        "Eosinophil": 7.31,
+        "Lymphocyte": 23.85,
+        "Monocyte": 5.51,
+        "Neutrophil": 61.24
+      }
+    },
+    "TestA": {
+      "total": 4339,
+      "class_counts": {
+        "Basophil": 89,
+        "Eosinophil": 322,
+        "Lymphocyte": 1034,
+        "Monocyte": 234,
+        "Neutrophil": 2660
+      },
+      "class_percentages": {
+        "Basophil": 2.05,
+        "Eosinophil": 7.42,
+        "Lymphocyte": 23.83,
+        "Monocyte": 5.39,
+        "Neutrophil": 61.3
+      }
+    },
+    "TestB": {
+      "total": 2119,
+      "class_counts": {
+        "Lymphocyte": 148,
+        "Neutrophil": 1971
+      },
+      "notes": "Two-class test split (Lymphocyte and Neutrophil only). Excluded from 5-class benchmark evaluation."
+    }
+  },
+  "image_statistics": {
+    "sampled_count": 1000,
+    "min_width": 575,
+    "max_width": 575,
+    "median_width": 575,
+    "min_height": 575,
+    "max_height": 575,
+    "median_height": 575,
+    "channels": 3,
+    "color_space": "RGB",
+    "file_format": "JPEG (.jpg)"
+  },
+  "data_integrity": {
+    "corrupted_images_detected": 0,
+    "exact_duplicates_detected": 0,
+    "shared_slides_train_testa": 26,
+    "split_policy": "Official split is stratified image-level partition. Held-out validation split must be created from Train without touching TestA."
+  }
+}

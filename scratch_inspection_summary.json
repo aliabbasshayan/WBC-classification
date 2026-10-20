@@ -1,0 +1,26 @@
+{
+  "total_images": 16633,
+  "split_class_counts": {
+    "TestA": {
+      "Basophil": 89,
+      "Eosinophil": 322,
+      "Lymphocyte": 1034,
+      "Monocyte": 234,
+      "Neutrophil": 2660
+    },
+    "TestB": {
+      "Lymphocyte": 148,
+      "Neutrophil": 1971
+    },
+    "Train": {
+      "Basophil": 212,
+      "Eosinophil": 744,
+      "Lymphocyte": 2427,
+      "Monocyte": 561,
+      "Neutrophil": 6231
+    }
+  },
+  "exact_duplicate_groups": 0,
+  "cross_split_duplicates": 0,
+  "within_split_duplicates": 0
+}
