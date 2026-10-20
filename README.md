@@ -77,3 +77,4 @@ It returns model scores and a Base64 Grad-CAM overlay when a checkpoint exists.
 The application is an educational research prototype, not a medical device.
 Softmax scores and Grad-CAM regions do not establish clinical certainty or
 biological causation.
+"# WBC-classification" 
