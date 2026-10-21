@@ -146,11 +146,11 @@ def plot_training_curves(history: Dict[str, list], save_path: str, model_title: 
     plt.close(fig)
 
 
-def run_training(model_name: str = "baseline_cnn",
+def run_training(model_name: str = "mobilenet_v3_small",
                  image_size: int = 128,
                  batch_size: int = 32,
-                 epochs: int = 10,
-                 lr: float = 1e-3,
+                 epochs: int = 15,
+                 lr: float = 5e-4,
                  weight_decay: float = 1e-4,
                  patience: int = 4,
                  subset_fraction: Optional[float] = None,
@@ -333,11 +333,11 @@ def run_training(model_name: str = "baseline_cnn",
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train WBC Deep Learning Classifier")
-    parser.add_argument("--model", type=str, default="baseline_cnn", choices=["baseline_cnn", "mobilenet_v3_small"])
+    parser.add_argument("--model", type=str, default="mobilenet_v3_small", choices=["baseline_cnn", "mobilenet_v3_small"])
     parser.add_argument("--image_size", type=int, default=128)
     parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--epochs", type=int, default=10)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--epochs", type=int, default=15)
+    parser.add_argument("--lr", type=float, default=5e-4)
     parser.add_argument("--patience", type=int, default=4)
     parser.add_argument("--subset", type=float, default=None, help="Fraction of data to sample (e.g. 0.05 for smoke test)")
     parser.add_argument("--resume", type=str, default=None, help="Path to checkpoint to resume from")

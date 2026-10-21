@@ -1,0 +1,6 @@
+Class,Precision,Recall,F1-Score,Support,ROC-AUC
+Basophil,0.9889,1.0,0.9944,89,1.0
+Eosinophil,0.6293,0.9068,0.743,322,0.9849
+Lymphocyte,0.896,0.9836,0.9378,1034,0.9971
+Monocyte,0.7333,0.7991,0.7648,234,0.9833
+Neutrophil,0.9925,0.8936,0.9405,2660,0.9917

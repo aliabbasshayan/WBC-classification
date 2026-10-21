@@ -53,10 +53,12 @@ def get_engine() -> WBCInferenceEngine:
     global _engine
     if _engine is None:
         # Priority: MobileNetV3-Small > Baseline CNN
-        if os.path.exists("artifacts/mobilenet_v3_small_best.pt"):
-            ckpt = "artifacts/mobilenet_v3_small_best.pt"
-        elif os.path.exists("artifacts/baseline_cnn_best.pt"):
-            ckpt = "artifacts/baseline_cnn_best.pt"
+        mobile_checkpoint = os.path.join(project_root, "artifacts", "mobilenet_v3_small_best.pt")
+        baseline_checkpoint = os.path.join(project_root, "artifacts", "baseline_cnn_best.pt")
+        if os.path.exists(mobile_checkpoint):
+            ckpt = mobile_checkpoint
+        elif os.path.exists(baseline_checkpoint):
+            ckpt = baseline_checkpoint
         else:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

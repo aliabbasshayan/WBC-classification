@@ -41,6 +41,9 @@ def test_inference_engine_on_real_image():
     assert res["predicted_class"] in CLASS_NAMES
     assert "confidence" in res
     assert 0.0 <= res["confidence"] <= 1.0
+    assert res["runner_up_class"] in CLASS_NAMES
+    assert 0.0 <= res["runner_up_confidence"] <= 1.0
+    assert 0.0 <= res["confidence_margin"] <= 1.0
     assert "score_breakdown" in res
     assert len(res["score_breakdown"]) == 5
     assert "heatmap" in res

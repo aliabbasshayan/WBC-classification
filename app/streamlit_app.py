@@ -20,6 +20,8 @@ from pathlib import Path
 project_root = str(Path(__file__).resolve().parent.parent)
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
+DATA_ROOT = Path(project_root) / "data"
+RESULTS_ROOT = Path(project_root) / "results"
 
 import io
 import json
@@ -45,7 +47,7 @@ from src.calibration import compute_calibration_metrics
 
 # Streamlit Page Configuration
 st.set_page_config(
-    page_title="Explainable WBC Classifier (Grad-CAM)",
+    page_title="CellScope | Explainable WBC AI",
     page_icon="🔬",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -54,23 +56,50 @@ st.set_page_config(
 # Custom Styling (CSS)
 st.markdown("""
 <style>
+    :root {
+        --ink: #172033;
+        --muted: #667085;
+        --primary: #5b4bdb;
+        --secondary: #0ea5a4;
+        --surface: #ffffff;
+        --line: #e7eaf3;
+    }
+    .block-container { padding-top: 2rem; padding-bottom: 3rem; max-width: 1440px; }
+    [data-testid="stSidebar"] { background: linear-gradient(180deg, #111936 0%, #1d2450 100%); }
+    [data-testid="stSidebar"] * { color: #f6f7fb !important; }
+    [data-testid="stSidebar"] .stRadio label { border-radius: 10px; padding: 0.3rem 0.4rem; }
+    [data-testid="stMetric"] {
+        background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+        padding: 0.85rem 1rem; box-shadow: 0 8px 24px rgba(34, 42, 75, 0.06);
+    }
+    [data-testid="stMetricValue"] { color: var(--ink); }
+    .hero {
+        padding: 2.2rem 2.4rem; border-radius: 24px; margin-bottom: 1.2rem;
+        background: radial-gradient(circle at 88% 10%, rgba(45, 212, 191, .35), transparent 30%),
+                    linear-gradient(120deg, #171d46 0%, #393181 52%, #147d86 100%);
+        color: white; box-shadow: 0 18px 45px rgba(29, 37, 92, .2);
+    }
+    .hero h1 { font-size: clamp(2rem, 4vw, 3.35rem); line-height: 1.05; margin: 0 0 .65rem; }
+    .hero p { color: #dfe5ff; max-width: 760px; font-size: 1.08rem; margin: 0; }
+    .eyebrow { color: #8ef0df; text-transform: uppercase; letter-spacing: .14em; font-size: .72rem; font-weight: 800; }
+    .section-title { color: var(--ink); font-weight: 800; margin-top: 1.5rem; }
+    .feature-card {
+        min-height: 150px; padding: 1.2rem; border: 1px solid var(--line); border-radius: 16px;
+        background: linear-gradient(145deg, #fff, #f7f8fc); box-shadow: 0 8px 22px rgba(34, 42, 75, .05);
+    }
+    .feature-card h4 { margin: 0 0 .5rem; color: var(--ink); }
+    .feature-card p { color: var(--muted); font-size: .9rem; margin: 0; }
+    .prediction-card {
+        border: 1px solid #d9d5ff; border-radius: 18px; padding: 1.25rem;
+        background: linear-gradient(145deg, #f8f7ff, #effcfb);
+    }
     .main-title {
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: #1E3A8A;
+        font-size: 2.2rem; font-weight: 800; color: var(--ink);
         margin-bottom: 0.2rem;
     }
     .subtitle {
-        font-size: 1.05rem;
-        color: #4B5563;
+        font-size: 1.05rem; color: var(--muted);
         margin-bottom: 1.5rem;
-    }
-    .metric-card {
-        background: #F8FAFC;
-        border-radius: 10px;
-        padding: 1rem;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .badge-pill {
         display: inline-block;
@@ -83,15 +112,15 @@ st.markdown("""
         margin-right: 0.5rem;
     }
     .disclaimer-box {
-        background-color: #FEF3C7;
-        border-left: 5px solid #F59E0B;
+        background-color: #fff8e7; border: 1px solid #f6d98b; border-left: 5px solid #f59e0b;
         padding: 0.85rem;
-        border-radius: 6px;
+        border-radius: 12px;
         font-size: 0.9rem;
-        color: #92400E;
+        color: #7a4b00;
         margin-top: 1rem;
         margin-bottom: 1rem;
     }
+    .stButton > button { border-radius: 10px; font-weight: 700; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -103,7 +132,7 @@ def load_inference_engine(model_type: str = "baseline_cnn") -> Optional[WBCInfer
         "Baseline CNN (Custom 4-Stage)": "artifacts/baseline_cnn_best.pt",
         "MobileNetV3-Small (Transfer Learning)": "artifacts/mobilenet_v3_small_best.pt"
     }
-    ckpt_path = checkpoint_map.get(model_type, "artifacts/baseline_cnn_best.pt")
+    ckpt_path = str(Path(project_root) / checkpoint_map.get(model_type, "artifacts/baseline_cnn_best.pt"))
     if not os.path.exists(ckpt_path):
         return None
     try:
@@ -116,16 +145,16 @@ def load_inference_engine(model_type: str = "baseline_cnn") -> Optional[WBCInfer
 def get_available_models() -> List[str]:
     """Finds which model checkpoints exist on disk."""
     available = []
-    if os.path.exists("artifacts/baseline_cnn_best.pt"):
+    if os.path.exists(Path(project_root) / "artifacts" / "baseline_cnn_best.pt"):
         available.append("Baseline CNN (Custom 4-Stage)")
-    if os.path.exists("artifacts/mobilenet_v3_small_best.pt"):
+    if os.path.exists(Path(project_root) / "artifacts" / "mobilenet_v3_small_best.pt"):
         available.append("MobileNetV3-Small (Transfer Learning)")
     return available
 
 
 def get_dataset_counts() -> Dict[str, int]:
     """Return counts from the generated manifest instead of hardcoded UI claims."""
-    manifest_path = "data/processed/split_manifest.json"
+    manifest_path = str(Path(project_root) / "data" / "processed" / "split_manifest.json")
     if not os.path.exists(manifest_path):
         return {}
     try:
@@ -156,7 +185,7 @@ def render_disclaimer():
 # =====================================================================
 # SIDEBAR
 # =====================================================================
-st.sidebar.markdown("## 🔬 WBC AI Navigation")
+st.sidebar.markdown("## 🔬 CellScope AI")
 page = st.sidebar.radio(
     "Select Workflow Module:",
     [
@@ -175,7 +204,12 @@ st.sidebar.markdown("### ⚙️ Model Settings")
 available_models = get_available_models()
 
 if available_models:
-    selected_model_type = st.sidebar.selectbox("Active Architecture:", available_models)
+    preferred_model = "MobileNetV3-Small (Transfer Learning)"
+    default_index = available_models.index(preferred_model) if preferred_model in available_models else 0
+    selected_model_type = st.sidebar.selectbox(
+        "Active Architecture:", available_models, index=default_index,
+        help="MobileNetV3 is the recommended checkpoint because it has the strongest validation macro-F1."
+    )
     engine = load_inference_engine(selected_model_type)
     if engine:
         st.sidebar.success(f"Loaded: `{engine.model_name}`\nInput Size: `{engine.image_size}x{engine.image_size}`")
@@ -194,8 +228,13 @@ st.sidebar.info("**Hardware Config:**\nIntel Core i7 CPU (4 Cores / 8 Threads)\n
 # PAGE A: HOME & PROJECT OVERVIEW
 # =====================================================================
 if page == "🏠 Home & Project Overview":
-    st.markdown('<div class="main-title">Explainable White Blood Cell Classification</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">Deep Learning & Grad-CAM Visual Attribution for Leukocyte Identification</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="hero"><div class="eyebrow">CellScope AI · WBC research workspace</div>'
+        '<h1>See the cell. Understand the prediction.</h1>'
+        '<p>A focused, explainable computer-vision workspace for five-class white blood cell screening, '
+        'with confidence-aware predictions and Grad-CAM visual evidence.</p></div>',
+        unsafe_allow_html=True
+    )
     
     render_disclaimer()
 
@@ -211,6 +250,17 @@ if page == "🏠 Home & Project Overview":
         st.metric("Primary Test Split", test_label, "Held-Out")
     with col4:
         st.metric("CPU Latency", "Measured per run", "See inference panel")
+
+    st.markdown('<h3 class="section-title">A clearer path from image to insight</h3>', unsafe_allow_html=True)
+    feature_cols = st.columns(3)
+    features = [
+        ("01 · Classify", "Upload one cell or screen a batch with a lightweight CPU-friendly deep-learning model."),
+        ("02 · Explain", "Inspect where the network focused with an interactive heatmap and morphology notes."),
+        ("03 · Validate", "Compare held-out metrics, confusion patterns, calibration and error cases before trusting results.")
+    ]
+    for col, (title, text) in zip(feature_cols, features):
+        with col:
+            st.markdown(f'<div class="feature-card"><h4>{title}</h4><p>{text}</p></div>', unsafe_allow_html=True)
 
     st.markdown("### 🎯 Project Summary & Engineering Objectives")
     st.markdown("""
@@ -231,13 +281,13 @@ if page == "🏠 Home & Project Overview":
             st.caption(WBC_MORPHOLOGY_NOTES[cls][:140] + "...")
 
     # Display dataset distribution figure if generated
-    if os.path.exists("results/figures/class_distribution.png"):
+    if (RESULTS_ROOT / "figures" / "class_distribution.png").exists():
         st.markdown("### 📊 Official Dataset Class Distribution")
-        st.image("results/figures/class_distribution.png", use_container_width=True)
+        st.image(str(RESULTS_ROOT / "figures" / "class_distribution.png"), use_container_width=True)
 
-    if os.path.exists("results/figures/dataset_samples_grid.png"):
+    if (RESULTS_ROOT / "figures" / "dataset_samples_grid.png").exists():
         st.markdown("### 🔬 Microscopic Smear Samples")
-        st.image("results/figures/dataset_samples_grid.png", use_container_width=True)
+        st.image(str(RESULTS_ROOT / "figures" / "dataset_samples_grid.png"), use_container_width=True)
 
 
 # =====================================================================
@@ -260,7 +310,7 @@ elif page == "🔬 Single Cell Classification":
         if uploaded_file is not None:
             input_image = Image.open(uploaded_file).convert("RGB")
     else:
-        sample_files = glob.glob("data/raw/TestA/TestA/*/*.jpg")
+        sample_files = glob.glob(str(DATA_ROOT / "raw" / "TestA" / "TestA" / "*" / "*.jpg"))
         if sample_files:
             sample_options = {f"{os.path.basename(os.path.dirname(p))} - {os.path.basename(p)}": p for p in sample_files[:40]}
             choice = st.selectbox("Pick a benchmark test sample:", list(sample_options.keys()))
@@ -302,8 +352,17 @@ elif page == "🔬 Single Cell Classification":
             conf = res["confidence"]
             scores = res["score_breakdown"]
 
-            st.success(f"**Predicted Class:** `{predicted_class}` (Confidence Score: **{conf*100:.2f}%**)")
-            st.caption(f"Inference Latency: **{latency_ms:.1f} ms** on CPU | Model: `{engine.model_name}`")
+            margin = res["confidence_margin"]
+            st.markdown(
+                f'<div class="prediction-card"><div class="eyebrow">Model result</div>'
+                f'<h2 style="margin:.2rem 0;color:#172033">{predicted_class}</h2>'
+                f'<p style="margin:0;color:#667085">Top score <b>{conf*100:.2f}%</b> · '
+                f'lead over {res["runner_up_class"]}: <b>{margin*100:.2f} pts</b></p></div>',
+                unsafe_allow_html=True
+            )
+            if margin < 0.10:
+                st.warning("Close call: the top two classes are near each other. Review the heatmap and morphology guide.")
+            st.caption(f"Inference latency: **{latency_ms:.1f} ms** on CPU | Model: `{engine.model_name}`")
 
             # Probability Distribution Bar Chart
             score_df = pd.DataFrame({
@@ -362,7 +421,7 @@ elif page == "🧩 Explainability & Attention":
     Following **Adebayo et al. (NeurIPS 2018) 'Sanity Checks for Saliency Maps'**, this module performs formal verification:
     """)
 
-    sample_files = glob.glob("data/raw/TestA/TestA/*/*.jpg")
+    sample_files = glob.glob(str(DATA_ROOT / "raw" / "TestA" / "TestA" / "*" / "*.jpg"))
     if not sample_files:
         st.warning("No test images available.")
         st.stop()
@@ -447,6 +506,8 @@ elif page == "📁 Batch Screening":
                         "Filename": file.name,
                         "Predicted Class": pred_res["predicted_class"],
                         "Confidence": pred_res["confidence"],
+                        "Confidence Margin": pred_res["confidence_margin"],
+                        "Runner-up": pred_res["runner_up_class"],
                         "Quality Status": pred_res["quality_report"]["status"],
                         "Basophil Score": pred_res["score_breakdown"]["Basophil"],
                         "Eosinophil Score": pred_res["score_breakdown"]["Eosinophil"],
@@ -490,7 +551,7 @@ elif page == "📊 Benchmark Evaluation":
     render_disclaimer()
 
     # Look for metrics reports in results/reports/
-    metric_files = glob.glob("results/reports/*_test_metrics.json")
+    metric_files = glob.glob(str(RESULTS_ROOT / "reports" / "*_test_metrics.json"))
     if not metric_files:
         st.warning("No test evaluation reports found. Run `python src/evaluate.py` to evaluate on held-out test data.")
     else:
@@ -524,8 +585,8 @@ elif page == "📊 Benchmark Evaluation":
 
         # Display Confusion Matrix and ROC Curve figures
         col1, col2 = st.columns(2)
-        cm_path = f"results/figures/{selected_model_report}_confusion_matrix.png"
-        roc_path = f"results/figures/{selected_model_report}_roc_curves.png"
+        cm_path = str(RESULTS_ROOT / "figures" / f"{selected_model_report}_confusion_matrix.png")
+        roc_path = str(RESULTS_ROOT / "figures" / f"{selected_model_report}_roc_curves.png")
 
         with col1:
             if os.path.exists(cm_path):
@@ -534,7 +595,7 @@ elif page == "📊 Benchmark Evaluation":
             if os.path.exists(roc_path):
                 st.image(roc_path, caption=f"ROC Curves ({selected_model_report})", use_container_width=True)
 
-        curve_path = f"results/figures/{selected_model_report}_training_curves.png"
+        curve_path = str(RESULTS_ROOT / "figures" / f"{selected_model_report}_training_curves.png")
         if os.path.exists(curve_path):
             st.markdown("### 📉 Training & Validation Learning Curves")
             st.image(curve_path, use_container_width=True)
@@ -547,7 +608,7 @@ elif page == "🔍 Error & Misclassification Analysis":
     st.markdown("## 🔍 Error Analysis & Misclassified Samples Explorer")
     render_disclaimer()
 
-    misc_csvs = glob.glob("results/reports/*_misclassified_samples.csv")
+    misc_csvs = glob.glob(str(RESULTS_ROOT / "reports" / "*_misclassified_samples.csv"))
     if not misc_csvs:
         st.warning("No misclassification logs found. Run evaluation to detect error cases.")
     else:

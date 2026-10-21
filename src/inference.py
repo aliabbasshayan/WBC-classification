@@ -167,6 +167,9 @@ class WBCInferenceEngine:
         predicted_idx = int(np.argmax(probabilities))
         predicted_class = IDX_TO_CLASS[predicted_idx]
         confidence = float(probabilities[predicted_idx])
+        ranked_indices = np.argsort(probabilities)[::-1]
+        runner_up_idx = int(ranked_indices[1])
+        runner_up_confidence = float(probabilities[runner_up_idx])
 
         # 4. Resolve explanation target
         if target_explain_class is not None and target_explain_class in CLASS_NAMES:
@@ -203,6 +206,9 @@ class WBCInferenceEngine:
         return {
             "predicted_class": predicted_class,
             "confidence": round(confidence, 4),
+            "runner_up_class": IDX_TO_CLASS[runner_up_idx],
+            "runner_up_confidence": round(runner_up_confidence, 4),
+            "confidence_margin": round(confidence - runner_up_confidence, 4),
             "score_breakdown": score_breakdown,
             "explained_class": explained_name,
             "quality_report": quality_report,

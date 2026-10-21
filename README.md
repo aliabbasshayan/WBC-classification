@@ -40,15 +40,17 @@ If the environment already exists, install/update the dependencies with:
 Run a short CPU smoke test first:
 
 ```powershell
-& "$env:USERPROFILE\anaconda3\envs\wbc-ai\python.exe" src/train.py --model baseline_cnn --subset 0.03 --epochs 2 --batch_size 16 --image_size 128
+& "$env:USERPROFILE\anaconda3\envs\wbc-ai\python.exe" src/train.py --model mobilenet_v3_small --subset 0.03 --epochs 2 --batch_size 16 --image_size 128
 ```
 
-For a longer run, omit `--subset`. Checkpoints are saved in `artifacts/`, and
-training history/curves are saved in `results/`. Training can resume from a
-latest checkpoint with `--resume`.
+For the recommended accuracy run, omit `--subset` so every training image is
+used. The default is now MobileNetV3-Small with ImageNet transfer learning,
+because the saved baseline CNN has a substantially lower held-out macro-F1.
+Checkpoints are saved in `artifacts/`, and training history/curves are saved in
+`results/`. Training can resume from a latest checkpoint with `--resume`.
 
 ```powershell
-& "$env:USERPROFILE\anaconda3\envs\wbc-ai\python.exe" src/evaluate.py --checkpoint artifacts/baseline_cnn_best.pt --image_size 128
+& "$env:USERPROFILE\anaconda3\envs\wbc-ai\python.exe" src/evaluate.py --checkpoint artifacts/mobilenet_v3_small_best.pt --image_size 128
 ```
 
 ## Applications
@@ -77,4 +79,18 @@ It returns model scores and a Base64 Grad-CAM overlay when a checkpoint exists.
 The application is an educational research prototype, not a medical device.
 Softmax scores and Grad-CAM regions do not establish clinical certainty or
 biological causation.
+
+## Latest verified results
+
+The recommended MobileNetV3-Small checkpoint was evaluated on all 4,339 held-out
+TestA images:
+
+- Accuracy: **91.31%**
+- Macro-F1: **0.8761**
+- Macro ROC-AUC: **0.9914**
+- Average CPU latency: **2.62 ms/image**
+
+The modernized CellScope AI interface shows the top prediction, runner-up class,
+confidence margin, Grad-CAM evidence and close-call warnings. The baseline CNN
+remains available for comparison.
 "# WBC-classification" 

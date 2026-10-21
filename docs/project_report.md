@@ -113,7 +113,54 @@ flowchart TD
 
 ---
 
-## 6. Viva Voce Defense Question Bank
+## 6. Updated Experimental Results
+
+The original custom baseline CNN achieved 77.85% accuracy and a 0.5925 macro-F1
+score on its saved held-out evaluation. Its main weaknesses were Eosinophil and
+Monocyte recognition, with F1 scores of 0.0741 and 0.3494 respectively.
+
+MobileNetV3-Small was therefore selected as the recommended checkpoint. It was
+evaluated on all 4,339 held-out TestA images:
+
+| Metric | MobileNetV3-Small |
+|---|---:|
+| Accuracy | 91.31% |
+| Macro precision | 84.80% |
+| Macro recall | 91.66% |
+| Macro F1-score | 87.61% |
+| Macro ROC-AUC | 99.14% |
+| Average CPU latency | 2.62 ms/image |
+
+Per-class F1 scores were: Basophil 99.44%, Eosinophil 74.30%, Lymphocyte
+93.78%, Monocyte 76.48%, and Neutrophil 94.05%. Compared with the baseline,
+the recommended model improves macro-F1 by 28.36 percentage points.
+
+## 7. Updated Streamlit Application
+
+The application has been refreshed as **CellScope AI** with a modern visual
+hierarchy, gradient hero section, feature cards, improved spacing and
+project-root based resource paths. MobileNetV3-Small is now the default
+recommended architecture while the baseline remains available for comparison.
+
+The single-cell workflow displays the top prediction, confidence, runner-up
+class and confidence margin. A close-call warning appears when the top two
+classes are near each other, encouraging review of the Grad-CAM overlay and
+morphology guide. Batch screening exports the same uncertainty information in
+CSV format. The benchmark dashboard now exposes the updated confusion matrix,
+ROC curves, per-class metrics and misclassification report.
+
+## 8. Reliability, Testing and Safety
+
+The final validation run passed all 12 automated tests. Python compilation
+passed and the Streamlit smoke server returned HTTP 200. The test suite covers
+class mappings, preprocessing, leakage checks, DataLoader behavior, real-image
+inference, quality safeguards, Grad-CAM utilities and calibration safeguards.
+
+The system remains an academic research prototype. Confidence scores and
+Grad-CAM maps are not clinical certainty, do not establish biological
+causation, and must not replace a qualified hematopathologist.
+
+## 9. Viva Voce Defense Question Bank
 
 1. **Why was MobileNetV3-Small selected over ResNet-50 or ViT?**
    *Answer*: In clinical and university laboratory settings without dedicated NVIDIA GPUs, MobileNetV3-Small offers an optimal balance between parameter efficiency (~1.8M params vs 25M for ResNet-50), low memory footprint, and low CPU inference latency (<15 ms per image), preventing memory bottlenecks on 16GB RAM machines.
@@ -128,7 +175,7 @@ flowchart TD
 
 ---
 
-## 7. Ethical Considerations and Disclaimers
+## 10. Ethical Considerations and Disclaimers
 1. **Intended Use**: This software is strictly an academic research and educational prototype. It is NOT certified as a medical diagnostic device under FDA 510(k), CE-IVD, or ISO 13485 regulations.
 2. **No Autonomous Clinical Action**: Automated predictions and Grad-CAM overlays are designed to assist hematology students and researchers in understanding visual attribution. They must never replace the diagnosis of a certified hematopathologist.
 3. **Data Privacy**: The Raabin-WBC dataset comprises anonymized, cropped public microscopy images. The application processes images locally in-memory and does not permanently store patient records or uploaded smears.
